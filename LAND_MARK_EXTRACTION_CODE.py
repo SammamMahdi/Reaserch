@@ -60,7 +60,7 @@ def get_landmarks(image):
             for landmarks, indexes in FACE_INDEXES.items():
                 print(landmarks)
                 for index in indexes:
-                    print(f"{index} : {face_landmarks.landmark[index]}")
+                    print(f"Index:{index}\nPOINTS:\n{face_landmarks.landmark[index]}")
                     c += 1
         print(c)
 
