@@ -58,9 +58,8 @@ def get_landmarks(image):
         c = 0
         for face_no, face_landmarks in enumerate(face_mesh_results.multi_face_landmarks):
             for landmarks, indexes in FACE_INDEXES.items():
-                print(landmarks)
                 for index in indexes:
-                    print(f"Index:{index}\nPOINTS:\n{face_landmarks.landmark[index]}")
+                    print(f"{landmarks}_{index}\n{face_landmarks.landmark[index]}")
                     c += 1
         print(c)
 
