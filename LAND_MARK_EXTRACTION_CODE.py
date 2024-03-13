@@ -1,19 +1,18 @@
 import cv2
-import itertools
-import numpy as np
-from time import time
 import mediapipe as mp
-import matplotlib.pyplot as plt
+import pandas as pd
+import os
 
+# Initialize face mesh
 mp_face_mesh = mp.solutions.face_mesh
 face_mesh_images = mp_face_mesh.FaceMesh(static_image_mode=True, max_num_faces=2, min_detection_confidence=0.5)
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
-sample_img = cv2.imread('droopy0.jpg')
 
 
 def get_landmarks(image):
-    face_mesh_results = face_mesh_images.process(sample_img[:, :, ::-1])
+    face_mesh_results = face_mesh_images.process(image[:, :, ::-1])
+    # Define your FACE_INDEXES here
     FACE_INDEXES = {
         "silhouette": [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288,
                        397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136,
@@ -54,14 +53,37 @@ def get_landmarks(image):
 
         "rightCheek": [205],
         "leftCheek": [425]}
+
+    data = []
     if face_mesh_results.multi_face_landmarks:
-        c = 0
         for face_no, face_landmarks in enumerate(face_mesh_results.multi_face_landmarks):
             for landmarks, indexes in FACE_INDEXES.items():
                 for index in indexes:
-                    print(f"{landmarks}_{index}\n{face_landmarks.landmark[index]}")
-                    c += 1
-        print(c)
+                    landmark = face_landmarks.landmark[index]
+                    data.append((landmarks, index, landmark.x, landmark.y, landmark.z))
+    return data
 
 
-get_landmarks(sample_img)
+folder_path = "Stroke_Dataset"
+all_landmarks = []
+
+for filename in os.listdir(folder_path):
+    if filename.lower().endswith((".jpg", ".png")):  # Check for both .jpg and .png files
+        img_path = os.path.join(folder_path, filename)
+        image = cv2.imread(img_path)
+        if image is None:
+            continue
+        landmarks = get_landmarks(image)
+        for landmark in landmarks:
+            # Add filename to distinguish between images
+            all_landmarks.append((filename,) + landmark)
+
+# export csv
+
+
+# Convert the list of tuples into a DataFrame
+df = pd.DataFrame(all_landmarks, columns=['Filename', 'Landmark Group', 'Index', 'X', 'Y', 'Z'])
+
+# Write the DataFrame to a CSV file
+csv_output_path = "landmarks.csv"
+df.to_csv(csv_output_path, index=False)
